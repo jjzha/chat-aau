@@ -1,0 +1,37 @@
+services:
+  vllm:
+    image: vllm/vllm-openai:v0.8.0
+    ports:
+      - "8000:8000"
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+    command: [
+      "--model=Qwen/Qwen2.5-7B-Instruct",
+      "--dtype=bfloat16",
+      "--tensor-parallel-size=2",
+      "--trust-remote-code",
+      "--max-model-len=8192",
+      "--api_key=aau-1"
+    ]
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    restart: always
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    environment:
+      - OPENAI_API_BASE_URL=http://130.225.37.253:8000/v1
+      - OPENAI_API_KEY=aau-1
+      - ENABLE_OLLAMA_API=false
+    ports:
+      - "3000:8080"
+    depends_on:
+      - vllm
+    volumes:
+      - open-webui:/app/backend/data
+    restart: always
+
+volumes:
+  open-webui:
