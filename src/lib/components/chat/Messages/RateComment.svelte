@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
-
 	import { createEventDispatcher, onMount, getContext } from 'svelte';
 	import { config, models } from '$lib/stores';
 	import Tags from '$lib/components/common/Tags.svelte';
 
 	const i18n = getContext('i18n');
-
 	const dispatch = createEventDispatcher();
 
 	export let message;
@@ -33,12 +31,15 @@
 	];
 
 	let tags = [];
-
 	let reasons = [];
 	let selectedReason = null;
 	let comment = '';
 
-	let detailedRating = null;
+	// Instead of one detailedRating, we have three ratings:
+	let detailedRating1 = null;
+	let detailedRating2 = null;
+	let detailedRating3 = null;
+
 	let selectedModel = null;
 
 	$: if (message?.annotation?.rating === 1) {
@@ -55,17 +56,21 @@
 		if (!selectedReason) {
 			selectedReason = message?.annotation?.reason ?? '';
 		}
-
 		if (!comment) {
 			comment = message?.annotation?.comment ?? '';
 		}
-
 		tags = (message?.annotation?.tags ?? []).map((tag) => ({
 			name: tag
 		}));
-
-		if (!detailedRating) {
-			detailedRating = message?.annotation?.details?.rating ?? null;
+		// Initialize each detailed rating from the message annotation if available
+		if (!detailedRating1) {
+			detailedRating1 = message?.annotation?.details?.rating1 ?? null;
+		}
+		if (!detailedRating2) {
+			detailedRating2 = message?.annotation?.details?.rating2 ?? null;
+		}
+		if (!detailedRating3) {
+			detailedRating3 = message?.annotation?.details?.rating3 ?? null;
 		}
 	};
 
@@ -82,20 +87,16 @@
 
 	const saveHandler = () => {
 		console.log('saveHandler');
-		// if (!selectedReason) {
-		// 	toast.error($i18n.t('Please select a reason'));
-		// 	return;
-		// }
-
 		dispatch('save', {
 			reason: selectedReason,
 			comment: comment,
 			tags: tags.map((tag) => tag.name),
 			details: {
-				rating: detailedRating
+				rating1: detailedRating1,
+				rating2: detailedRating2,
+				rating3: detailedRating3
 			}
 		});
-
 		toast.success($i18n.t('Thanks for your feedback!'));
 		show = false;
 	};
@@ -136,37 +137,61 @@
 		</button>
 	</div>
 
-	<div class="w-full flex justify-center">
-		<div class=" relative w-fit">
-			<div class="mt-1.5 w-fit flex gap-1 pb-5">
-				<!-- 1-10 scale -->
-				{#each Array.from({ length: 10 }).map((_, i) => i + 1) as rating}
+	<div class="w-full flex flex-row gap-12">
+		<!-- Rating Scale 1 -->
+		<div class="relative w-fit">
+			<div class="text-sm font-medium">{$i18n.t('Factuality')}</div>
+			<div class="mt-1.5 flex gap-1 pb-5">
+				{#each Array.from({ length: 5 }).map((_, i) => i + 1) as rating}
 					<button
-						class="size-7 text-sm border border-gray-100 dark:border-gray-850 hover:bg-gray-50 dark:hover:bg-gray-850 {detailedRating ===
-						rating
-							? 'bg-gray-100 dark:bg-gray-800'
-							: ''} transition rounded-full disabled:cursor-not-allowed disabled:text-gray-500 disabled:bg-white dark:disabled:bg-gray-900"
-						on:click={() => {
-							detailedRating = rating;
-						}}
-						disabled={message?.annotation?.rating === -1 ? rating > 5 : rating < 6}
+						class="size-7 text-sm border border-gray-100 dark:border-gray-850 hover:bg-gray-50 dark:hover:bg-gray-850 {detailedRating1 === rating ? 'bg-gray-100 dark:bg-gray-800' : ''} transition rounded-full"
+						on:click={() => { detailedRating1 = rating; }}
 					>
 						{rating}
 					</button>
 				{/each}
 			</div>
-
 			<div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs">
-				<div>
-					1 - {$i18n.t('Awful')}
-				</div>
+				<div>{$i18n.t('Unfactual')}</div>
+				<div>{$i18n.t('Factual')}</div>
+			</div>
+		</div>
 
-				<div>
-					10 - {$i18n.t('Amazing')}
-				</div>
+		<!-- Rating Scale 2 -->
+		<div class="relative w-fit">
+			<div class="text-sm font-medium">{$i18n.t('Actionability')}</div>
+			<div class="mt-1.5 flex gap-1 pb-5">
+				{#each Array.from({ length: 5 }).map((_, i) => i + 1) as rating}
+					<button
+						class="size-7 text-sm border border-gray-100 dark:border-gray-850 hover:bg-gray-50 dark:hover:bg-gray-850 {detailedRating2 === rating ? 'bg-gray-100 dark:bg-gray-800' : ''} transition rounded-full"
+						on:click={() => { detailedRating2 = rating; }}
+					>
+						{rating}
+					</button>
+				{/each}
+			</div>
+			<div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs">
+				<div>{$i18n.t('Non-actionable')}</div>
+				<div>{$i18n.t('Actionable')}</div>
+			</div>
+		</div>
+
+		<!-- Rating Scale 3 -->
+		<div class="relative w-fit">
+			<div class="text-sm font-medium">{$i18n.t('Appropriateness')}</div>
+			<div class="mt-1.5 flex gap-1 pb-5">
+				{#each Array.from({ length: 2 }).map((_, i) => i) as rating}
+					<button
+						class="size-7 text-sm border border-gray-100 dark:border-gray-850 hover:bg-gray-50 dark:hover:bg-gray-850 {detailedRating3 === rating ? 'bg-gray-100 dark:bg-gray-800' : ''} transition rounded-full"
+						on:click={() => { detailedRating3 = rating; }}
+					>
+						{rating}
+					</button>
+				{/each}
 			</div>
 		</div>
 	</div>
+
 
 	<div>
 		{#if reasons.length > 0}
