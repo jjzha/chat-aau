@@ -189,6 +189,10 @@
 					</button>
 				{/each}
 			</div>
+			<div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs">
+				<div>{$i18n.t('No')}</div>
+				<div>{$i18n.t('Yes')}</div>
+			</div>
 		</div>
 	</div>
 

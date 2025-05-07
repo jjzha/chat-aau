@@ -1,6 +1,6 @@
 services:
   vllm:
-    image: vllm/vllm-openai:latest
+    image: vllm/vllm-openai:v0.8.5
     ports:
       - "8000:8000"
     runtime: nvidia
@@ -9,12 +9,14 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN} # Make sure HF_TOKEN is set in your environment or a .env file
     command: [
-      "--model=google/gemma-3-4b-it",
+      "--model=Qwen/Qwen3-4B",
       "--dtype=bfloat16",
       "--tensor-parallel-size=2",
       "--trust-remote-code",
       "--max-model-len=8192",
       "--gpu-memory-utilization=0.95",
+      "--enable-reasoning",
+      "--reasoning-parser=deepseek_r1",
       "--api_key=aau-1"
     ]
     volumes:
